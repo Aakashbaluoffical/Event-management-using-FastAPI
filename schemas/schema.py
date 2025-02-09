@@ -18,7 +18,6 @@ class User(BaseModel):
         return value
 
 class EventRegistration(BaseModel):   
-    user_id:int
     event_id:int
 
 class ValidateCheckInCheckOut(BaseModel):   

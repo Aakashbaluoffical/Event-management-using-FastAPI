@@ -5,6 +5,9 @@ from schemas.schema import User
 from storage import query_data
 from sqlalchemy.exc import IntegrityError
 
+from tokenization.auth  import hash_password, authenticate_user
+from fastapi.security import OAuth2PasswordRequestForm
+
 
 router = APIRouter(tags=['Logins'])
 
@@ -22,6 +25,6 @@ def create_new_account(request: User, db: Session = Depends(get_db)):
     return{"data":"User Created","User_id":data}
 
 @router.post("/signin")
-def login(user: User, db: Session = Depends(get_db)):
-    # Implement user login logic here
-    return {'data':{'message': "Logged in successfully" }}
+def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    token = authenticate_user(db, form_data.username, form_data.password)
+    return {"access_token": token, "token_type": "bearer"}

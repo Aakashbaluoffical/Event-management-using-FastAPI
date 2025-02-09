@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 from storage.database import get_db
 from schemas.schema import EventRegistration,EventResponse,EventRegistratedResponse,EventCancel
 from cache import cache_set
-import json
-from fastapi.encoders import jsonable_encoder
+from tokenization.auth import get_current_user
 from storage import query_data 
 from typing import List
 
@@ -55,9 +54,9 @@ def view_event_by_id(event_id: int, db: Session = Depends(get_db)):
 #====================================================================================
 
 @router.post('/viewall/register')
-async def register_event(request: EventRegistration,db:Session = Depends(get_db)):
+async def register_event(request: EventRegistration,user_id: int = Depends(get_current_user),db:Session = Depends(get_db)):
         
-        check_result =query_data.check_already_registrated(db,request)
+        check_result =query_data.check_already_registrated(db,request,user_id)
         if check_result:
               raise HTTPException(status_code=404, detail="Already Registrated")
 
@@ -82,7 +81,8 @@ async def register_event(request: EventRegistration,db:Session = Depends(get_db)
 
 
 @router.get('/viewall/registrated')
-def viewall_registrated(user_id:int = None,db:Session = Depends(get_db)):
+def viewall_registrated(user_id: int = Depends(get_current_user),db:Session = Depends(get_db)):
+        print("user_id",user_id)
         data = cache_set.get_all_registrated_events(db,user_id,False)
         if not data:
               raise HTTPException(status_code=404, detail="Event not found")

@@ -2,18 +2,22 @@ from model.model import User,Event,Attendee
 import json 
 from sqlalchemy import and_
 from datetime import datetime
+from tokenization.auth import hash_password
 
 from sqlalchemy.sql import func
 
 
 
 def post_user(db,request):
+
+    hashed_pw = hash_password(request.password)
+    
     data = User(
         first_name=request.first_name,
         last_name=request.last_name,
         phone=request.phone,
         email=request.email,
-        password=request.password,
+        password=hashed_pw,
         role='user',
         active=True
     )
@@ -101,12 +105,12 @@ def post_registration(db,request,available_slots):
 
         
     
-def check_already_registrated(db,request):
+def check_already_registrated(db,request,user_id):
     data = (db.query(
         Attendee.user_id,
         Attendee.event_id
 
-        ).filter(Attendee.event_id == request.event_id,Attendee.user_id == request.user_id,Attendee.active==True).first()  
+        ).filter(Attendee.event_id == request.event_id,Attendee.user_id == user_id,Attendee.active==True).first()  
     )
     if not data:
         return []
@@ -307,3 +311,19 @@ def update_status(db):
     )
     db.commit() 
 
+
+
+
+def latet_id(db,table):
+    if table == 'user':
+        data = db.query(User.id).order_by(User.id.desc()).first()
+    elif table=='event':
+        data = db.query(Event.id).order_by(Event.id.desc()).first()
+    else:
+        data = db.query(Attendee.id).order_by(Attendee.id.desc()).first()
+
+      
+    data = (data)
+
+    keys=['id']
+    return  dict(zip(keys, data))

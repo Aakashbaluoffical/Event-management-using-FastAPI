@@ -12,14 +12,18 @@ class POSTGRESDB(BaseSettings):
     SCHEMA: str = os.environ["POSTGRES_SCHEMA"]
 
 
+class JWT_TOKEN(BaseSettings):
+    SECRET_KEY:  str = os.environ["SECRET_KEY"]
+    ALGORITHM: str = os.environ["ALGORITHM"]
+    ACCESS_TOKEN_EXPIRE_MINUTES:  int = os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"]
+   
+
 
 class REDISCACHE(BaseSettings):
     HOST: str = os.environ["REDIS_HOST"]
     PORT:  str = os.environ["REDIS_PORT"]
     DB:  str = os.environ["REDIS_DB"]
     PASSWORD:  str = os.environ["REDIS_PASSWORD"]
-
-    
     SOCKET_TIMEOUT: str = os.environ["REDIS_SOCKET_TIMEOUT"]
     
 
