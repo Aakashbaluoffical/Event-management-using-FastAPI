@@ -19,10 +19,10 @@ router = APIRouter(tags=["Event Control"])
 
 @router.post('/create_event')
 def create_event(request : CreateEvent,db:Session = Depends(get_db)):
-        # try:
-        check_result =query_data.post_event(db,request)
-        # except Exception as e:
-        #        raise HTTPException(status_code=500, detail=e)  
+        try:
+            check_result =query_data.post_event(db,request)
+        except Exception as e:
+               raise HTTPException(status_code=404, detail="User not found") 
         if check_result==False:
               raise HTTPException(status_code=404, detail="User not found")  
         return {"data":"Inserted"}#completed
@@ -58,6 +58,21 @@ def view_event_by_id(user_id:int = None,event_id:int = None,db:Session = Depends
         
         validated_data = [EventRegistratedResponse(**event) for event in filtered_data]  # Validate data using Pydantic
         return {"data":validated_data} #completed
+
+
+@router.get('/view_attendees/{event_id}')
+def view_attendees_by_id(user_id:int = None,event_id:int = None,db:Session = Depends(get_db)):
+        data = query_data.get_all_registrated_attendees(db,user_id,event_id)
+       
+        # filtered_data = list(filter(lambda x:x['event_id']==event_id,data))
+        
+        # if not filtered_data:
+        #         raise HTTPException(status_code=404, detail="Event not found")
+        
+        validated_data = [EventRegistratedResponse(**event) for event in data]  # Validate data using Pydantic
+        return {"data":validated_data} 
+
+
 
 
 #====================================================================================

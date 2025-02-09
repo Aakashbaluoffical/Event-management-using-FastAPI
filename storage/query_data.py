@@ -203,7 +203,7 @@ def post_event(db,request):
     print("datas.iddatas.iddatas.id",datas.id)
     
     
-    datas = Attendee(user_id = request.user_id,event_id = datas.id,active=True)
+    datas = Attendee(user_id = request.user_id,event_id = datas.id,active=True,created_by_id= request.user_id)
     
     db.add(datas)
     db.commit()
@@ -327,3 +327,30 @@ def latet_id(db,table):
 
     keys=['id']
     return  dict(zip(keys, data))
+
+
+def get_all_registrated_attendees(db,user_id,event_id):
+    events = (
+        db.query(
+            Attendee.id.label("attendee_id"),
+            Event.id.label("event_id"),
+            Event.name.label("event_name"),
+            Attendee.user_id,
+            Event.description,
+            Event.start_time,
+            Event.end_time,
+            Event.location,
+            Event.max_attendees,
+            User.first_name,
+            User.last_name,
+            User.phone,
+            Event.status
+        )
+        .filter( Attendee.event_id== event_id,Attendee.created_by_id==None)  # Correctly applying AND conditions
+        .join(Event, Attendee.event_id == Event.id)
+        .join(User, Attendee.user_id == User.id)
+        .order_by(Event.start_time.desc())
+        .enable_eagerloads(False)  # Disable unnecessary eager loading
+        .all()
+    )
+    return [dict(event._mapping) for event in events]
