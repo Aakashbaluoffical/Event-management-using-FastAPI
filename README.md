@@ -12,6 +12,7 @@ An Event Management System built using FastAPI, SQLAlchemy, PostgreSQL, Redis, J
 * Select an event and register.
 * View all registrations with user ID validation.
 * Cancel a registered event.
+* Automatically timeups Events
 
 🎟️ Event Hosting Features
 ==========================
@@ -19,6 +20,7 @@ An Event Management System built using FastAPI, SQLAlchemy, PostgreSQL, Redis, J
 * Create, Edit, and Cancel events.
 * Manage event Check-in/Check-out (as an event in-charge, manage check-in/check-out for registered users).
 * Insert bulk data through .csv uploads.
+
 
 🔑 Role-Based Access
 =====================
