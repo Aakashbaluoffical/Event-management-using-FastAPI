@@ -84,13 +84,13 @@ def check_slots_availabity(db,event_id):
     keys=['max_attendees']
     return  dict(zip(keys, data))
 
-def post_registration(db,request,available_slots):
+def post_registration(db,request,available_slots,user_id):
     slots = available_slots['max_attendees']-1
     
     if int(slots)<0:
         return False
     
-    datas = Attendee(user_id = request.user_id,event_id = request.event_id,active=True)
+    datas = Attendee(user_id = user_id,event_id = request.event_id,active=True)
 
     db.add(datas)
     db.commit()
@@ -248,6 +248,11 @@ def cancel_the_event(db,request):
 
     db.query(Attendee).filter(Attendee.created_by_id==request.user_id,Attendee.event_id == request.event_id).update({'active':False})
     db.commit()
+
+    db.query(Event).filter(Event.id == request.event_id).update({'status':'Cancelled'})
+    db.commit()
+   
+
     return db
 
 # def delete_the_event(db,request):
@@ -285,16 +290,7 @@ def update_event(db,request,user_id,event_id):
     return {"data":True,"message": "Event updated successfully"}
 
 
-# def update_status(db):
 
-#     today = datetime.now()
-    
-#     updated_rows = (
-#         db.query(Event)
-#         .filter(Event.status != "Completed", func.strftime('%Y-%m-%d %H:%M:%S', Event.end_time) < today.strftime('%Y-%m-%d %H:%M:%S'))
-#         .update({"status": "Completed"}, synchronize_session=False)  
-#     )
-#     return True
     
 
 from sqlalchemy.sql import text
@@ -304,7 +300,7 @@ def update_status(db):
             text(
                 "UPDATE event_tbl "
                 "SET status = 'Completed' "
-                "WHERE status != 'Completed' AND TO_TIMESTAMP(end_time, 'YYYY-MM-DD HH24:MI:SS') < :today"
+                "WHERE status != 'Completed' AND status != 'Cancelled' AND TO_TIMESTAMP(end_time, 'YYYY-MM-DD HH24:MI:SS') < :today"
             ),
             {"today": datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         )
@@ -354,3 +350,19 @@ def get_all_registrated_attendees(db,user_id,event_id):
         .all()
     )
     return [dict(event._mapping) for event in events]
+
+
+
+def check_the_creater_or_not(db,request,user_id):
+    data = (db.query(
+        Attendee.user_id,
+        Attendee.event_id
+
+        ).filter(Attendee.event_id == request.event_id,Attendee.user_id == user_id,Attendee.created_by_id == user_id,Attendee.active==True).first()  
+    )
+    if not data:
+        return False
+    
+    return True
+
+

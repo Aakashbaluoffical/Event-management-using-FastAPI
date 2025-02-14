@@ -54,8 +54,14 @@ def view_event_by_id(event_id: int, db: Session = Depends(get_db)):
 #====================================================================================
 
 @router.post('/viewall/register')
-async def register_event(request: EventRegistration,user_id: int = Depends(get_current_user),db:Session = Depends(get_db)):
+async def register_event(request: EventRegistration,user_id: int=None,
+                        #   = Depends(get_current_user),
+                         db:Session = Depends(get_db)):
         
+        check_creater =query_data.check_the_creater_or_not(db,request,user_id)
+        if check_creater == True:
+              raise HTTPException(status_code=404, detail="Creator unable to register")
+
         check_result =query_data.check_already_registrated(db,request,user_id)
         if check_result:
               raise HTTPException(status_code=404, detail="Already Registrated")
@@ -65,13 +71,13 @@ async def register_event(request: EventRegistration,user_id: int = Depends(get_c
         if available_slots['max_attendees'] == 0:
                raise  HTTPException(status_code=404, detail="Sold Out")  
                
-        user_details = query_data.get_all_users_by_id(db,request.user_id)
+        user_details = query_data.get_all_users_by_id(db,user_id)
         if not user_details:
               raise HTTPException(status_code=404, detail="User not found")  
         
          
         try:
-            result = query_data.post_registration(db,request,available_slots)
+            result = query_data.post_registration(db,request,available_slots,user_id)
             if result == False:
                 raise HTTPException(status_code=404, detail="Sold Out") 
         except Exception as e:
@@ -81,7 +87,9 @@ async def register_event(request: EventRegistration,user_id: int = Depends(get_c
 
 
 @router.get('/viewall/registrated')
-def viewall_registrated(user_id: int = Depends(get_current_user),db:Session = Depends(get_db)):
+def viewall_registrated(user_id: int = None
+                        # = Depends(get_current_user)
+                        ,db:Session = Depends(get_db)):
         print("user_id",user_id)
         data = cache_set.get_all_registrated_events(db,user_id,False)
         if not data:
